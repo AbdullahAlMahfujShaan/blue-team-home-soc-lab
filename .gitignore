@@ -1,0 +1,169 @@
+# =========================
+# Secrets / Credentials
+# =========================
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.p12
+*.cer
+*.crt
+*.token
+
+credentials*
+secrets*
+passwords*
+apikey*
+api-key*
+
+# =========================
+# VM Files
+# =========================
+*.vmdk
+*.vmem
+*.vmss
+*.vmsn
+*.vmx
+*.nvram
+*.vmxf
+*.vmsd
+*.lck
+*.log
+
+# VMware Fusion Bundles
+*.vmwarevm/
+
+# =========================
+# Packet Captures
+# =========================
+*.pcap
+*.pcapng
+*.cap
+
+# =========================
+# Memory / Forensics Dumps
+# =========================
+*.dmp
+*.dump
+*.raw
+*.mem
+*.vmem
+*.hiberfil.sys
+
+# =========================
+# Archives / Potential Samples
+# =========================
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+
+# =========================
+# Malware / Binary Samples
+# =========================
+*.exe
+*.dll
+*.sys
+*.scr
+*.com
+*.msi
+
+# =========================
+# Temporary Files
+# =========================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+~$*
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+log/
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# =========================
+# Windows
+# =========================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =========================
+# Linux
+# =========================
+.Trash-*
+.directory
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.code-workspace
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# =========================
+# Node
+# =========================
+node_modules/
+
+# =========================
+# Local Lab Data
+# =========================
+artifacts/private/
+evidence/private/
+samples/
+malware/
+captures/
+pcaps/
+memory-dumps/
+exports/
+
+# =========================
+# Wazuh / SIEM Exports
+# =========================
+wazuh-export*
+alerts-export*
+events-export*
+dashboard-export*
+
+# =========================
+# SSH
+# =========================
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+known_hosts
+
+# =========================
+# Misc Sensitive Files
+# =========================
+*.kdbx
+*.ovpn
+*.mobileconfig
