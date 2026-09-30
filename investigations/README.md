@@ -55,7 +55,7 @@ The goal is to understand the behaviour behind them.
 | ID | Investigation | Detection Source | Verdict |
 |---|---|---|---|
 | `001` | [OneDrive Accessing Windows Explorer](./001-onedrive-explorer-process-access.md) | Wazuh / Sysmon Event ID 10 | Likely Benign / Benign Positive |
-| `003` | Multi-Stage Intrusion & DNS Exfiltration | Phishing, PowerShell, SMB, Robocopy, DNS exfiltration | Confirmed malicious activity | [View investigation](003-multi-stage-intrusion-dns-exfiltration.md) |
+| `003` | [Multi-Stage Intrusion & DNS Exfiltration](./003-multi-stage-intrusion-dns-exfiltration.md)| Phishing, PowerShell, SMB, Robocopy, DNS exfiltration | Confirmed malicious activity |
 
 ---
 
