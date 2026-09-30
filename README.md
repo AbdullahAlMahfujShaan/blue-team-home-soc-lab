@@ -221,47 +221,13 @@ Telemetry tested includes:
 
 -   Investigated Wazuh alerts
 
-First SOC Investigation
------------------------
+## 🔎 Featured Investigations
 
-The first documented investigation involved:
-
-```
-OneDrive.exe
-      |
-      | Process Access
-      v
-Explorer.EXE
-```
-
-Wazuh generated:
-
-```
-Rule ID: 92910
-Severity: Level 12
-Description:
-Explorer process was accessed by OneDrive.exe,
-possible process injection
-```
-
-Investigation identified:
-
-```
-Sysmon Event ID: 10
-SourceImage: OneDrive.exe
-TargetImage: Explorer.EXE
-GrantedAccess: 0x101411
-SourceUser: BTL-WIN11\labadmin
-TargetUser: BTL-WIN11\labadmin
-```
-
-The call trace contained legitimate-looking Microsoft OneDrive modules including:
-
-```
-FileSyncClient.dll
-FileSyncEvents.dll
-FileSyncHost.DLL
-```
+| Investigation | Techniques |
+|---|---|
+| [OneDrive → Explorer Process Access](investigations/001-onedrive-explorer-process-access.md) | Sysmon Event ID 10, Process Access, Alert Triage |
+| [Windows Failed Logon Investigation](investigations/002-windows-failed-logon-investigation.md) | Windows Security Events 4624/4625, Authentication |
+| [Multi-Stage Intrusion & DNS Exfiltration](investigations/003-multi-stage-intrusion-dns-exfiltration.md) | Threat Hunting, PowerShell, SMB, Data Staging, DNS Exfiltration |
 
 ### Analyst Verdict
 
