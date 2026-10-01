@@ -1372,7 +1372,6 @@ into a single behavioural sequence.
 - [Microsoft Windows Security Auditing](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/basic-audit-account-logon-events)
 - [Wazuh Documentation](https://documentation.wazuh.com/)
 - [Wireshark](https://www.wireshark.org/)
-- [Cyber Kill Chain — Lockheed Martin](https://www.lockheedmartin.com/en-us/who-we-are/business-areas/cyber/cyber-kill-chain.html)
 
 ---
 
